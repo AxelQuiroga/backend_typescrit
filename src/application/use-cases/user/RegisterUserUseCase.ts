@@ -1,7 +1,10 @@
-import { prisma } from "../../../infrastructure/database/prisma.js";
 import type { RegisterUserDTO } from "../../dtos/RegisterUserDTO.js";
 import type { User } from "../../../domain/entities/user.js";
+import type { UserRepository } from "../../../domain/repositories/UserRepository.js";
+import bcrypt from "bcrypt";
 export class RegisterUserUseCase {
+  constructor(private userRepository: UserRepository) {}
+
   async execute(data: RegisterUserDTO): Promise<User> {
     
     // 🔒 Validaciones
@@ -17,25 +20,20 @@ export class RegisterUserUseCase {
       throw new Error("Username muy corto");
     }
 
-    // 🔍 Verificar si existe
-    const existingUser = await prisma.user.findUnique({
-      where: { email: data.email }
-    });
+    const existingUser = await this.userRepository.findByEmail(data.email);
 
     if (existingUser) {
       throw new Error("El usuario ya existe");
     }
 
-    // 🗄️ Guardar en DB
-    const newUser = await prisma.user.create({
-      data: {
-        email: data.email,
-        password: data.password,
-        username: data.username,
-        role: "USER"
-      }
-    });
+    const rounds = Number(process.env.BCRYPT_SALT_ROUNDS) || 12;
+    const hashedPassword = await bcrypt.hash(data.password, rounds);
 
-    return newUser;
+    return this.userRepository.create({
+      email: data.email,
+      password: hashedPassword,
+      username: data.username,
+      role: "USER"
+    });
   }
 }
