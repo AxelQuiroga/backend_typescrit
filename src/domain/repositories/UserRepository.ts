@@ -10,4 +10,9 @@ export interface UserRepository {
   }): Promise<User>;
 
   findById(id: string): Promise<User | null>;
+
+  update(id: string, data: {
+  email?: string;
+  username?: string;
+}): Promise<User>;
 }
