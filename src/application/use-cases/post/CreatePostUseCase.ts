@@ -10,12 +10,12 @@ export class CreatePostUseCase {
     data: CreatePostDTO
   ): Promise<PostResponseDTO> {
 
-    // 🔒 Validar existencia
+    // Validar existencia
     if (!data.title || !data.content) {
       throw new Error("Faltan campos obligatorios");
     }
 
-    // 🔒 Validar contenido
+    //  Validar contenido
     if (data.title.length < 3) {
       throw new Error("El título es muy corto");
     }

@@ -20,5 +20,11 @@ router.get(
   "/", // PROTEGIDO
   (req, res) => createPostController.getAll(req, res)
 );
+router.get("/posts/me", authMiddleware, (req, res) =>
+  createPostController.getMyPosts(req, res)
+);
+router.delete("/posts/:id", authMiddleware, (req, res) =>
+  createPostController.delete(req, res)
+);
 
 export default router;
