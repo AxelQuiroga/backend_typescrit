@@ -5,7 +5,8 @@ import { validate } from "../../../middlewares/validate.middleware.js";
 import {
   registerSchema,
   loginSchema,
-  updateUserSchema
+  updateProfileSchema,
+  publicProfileSchema
 } from "../validators/user.validator.js";
 import { PrismaUserRepository } from "../../../infrastructure/repositories/PrismaUserRepository.js";
 import { RegisterUserUseCase } from "../../../application/use-cases/user/RegisterUserUseCase.js";
@@ -32,8 +33,9 @@ router.post("/register", validate(registerSchema), (req, res) =>
 router.post("/login", validate(loginSchema), (req, res) =>
   controller.login(req, res)
 );
-router.put("/me", authMiddleware, validate(updateUserSchema), (req, res) =>
+router.put("/me", authMiddleware, validate(updateProfileSchema), (req, res) =>
   controller.update(req, res)
 );
+router.get("/users/u/:username", validate(publicProfileSchema), (req, res) => controller.me(req, res));
 
 export default router;

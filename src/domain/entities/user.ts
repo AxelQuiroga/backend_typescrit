@@ -8,4 +8,11 @@ export interface User {
   role: UserRole;
   createdAt: Date;
   updatedAt: Date;
+  //new changes because of private profile and public profile
+  displayName?: string | null
+  bio?: string | null
+  avatarUrl?: string | null
+  coverUrl?: string | null
+  location?: string | null
+  website?: string | null
 }
