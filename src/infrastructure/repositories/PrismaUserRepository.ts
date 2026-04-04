@@ -13,7 +13,7 @@ export class PrismaUserRepository implements UserRepository {
   async create(data: {
     email: string;
     password: string;
-    username: string;
+    username: string, unique: true;
     role: "USER" | "ADMIN";
   }): Promise<User> {
     return prisma.user.create({
@@ -27,10 +27,24 @@ export class PrismaUserRepository implements UserRepository {
   });
 }
 
-async update(id: string, data: { email?: string; username?: string }) {
+async update(id: string, data: { email?: string; username?: string 
+  displayName?: string | null;
+  bio?: string | null;
+  avatarUrl?: string | null;
+  coverUrl?: string | null;
+  location?: string | null;
+  website?: string | null;
+}) {
   return prisma.user.update({
     where: { id },
     data
   });
 }
+
+async findByUsername(username: string): Promise<User | null> {
+  return prisma.user.findUnique({
+    where: { username }
+  });
+}
+
 }

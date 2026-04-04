@@ -1,4 +1,6 @@
 export interface UpdateProfileInput {
+  email?: string ;
+  username?: string ;
   displayName?: string | null;
   bio?: string | null;
   avatarUrl?: string | null;
