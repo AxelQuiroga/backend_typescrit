@@ -7,8 +7,6 @@ import { UpdateUserProfileUseCase } from "../../../application/use-cases/user/Up
 import type { LoginRequest } from "../dtos/user/LoginRequest.js";
 import type { RegisterUserRequest } from "../dtos/user/RegisterUserRequest.js";
 import type { UpdateProfileRequest } from "../dtos/user/UpdateProfileRequest.js";
-
-
 import {
   toLoginInput,
   toLoginResponse,
@@ -18,13 +16,13 @@ import {
   toUserPublicProfileResponse
 } from "../mappers/user.mapper.js";
 export class UserController {
- constructor(
-  private registerUserUseCase: RegisterUserUseCase,
-  private loginUserUseCase: LoginUserUseCase,
-  private getMyProfileUseCase: GetMyProfileUseCase,
-  private updateUserProfileUseCase: UpdateUserProfileUseCase,
-  private getUserPublicProfileUseCase: GetUserPublicProfileUseCase
-) {}
+  constructor(
+    private registerUserUseCase: RegisterUserUseCase,
+    private loginUserUseCase: LoginUserUseCase,
+    private getMyProfileUseCase: GetMyProfileUseCase,
+    private updateUserProfileUseCase: UpdateUserProfileUseCase,
+    private getUserPublicProfileUseCase: GetUserPublicProfileUseCase
+  ) { }
 
   async register(req: Request, res: Response) {
     try {
@@ -58,8 +56,10 @@ export class UserController {
 
   async me(req: Request, res: Response) {
     try {
-
-      const userId = (req as any).user.userId;
+      if (!req.user) {
+        return res.status(401).json({ error: "No autorizado" });
+      }
+      const userId = req.user.userId;
 
       const user = await this.getMyProfileUseCase.execute(userId);
 
@@ -72,7 +72,10 @@ export class UserController {
   async update(req: Request, res: Response) {
     try {
 
-      const userId = (req as any).user.userId;
+      if (!req.user) {
+        return res.status(401).json({ error: "No autorizado" });
+      }
+      const userId = req.user.userId;
 
       const input = toUpdateProfileInput(
         res.locals.validated.body as UpdateProfileRequest
@@ -87,15 +90,15 @@ export class UserController {
   }
 
   async publicProfile(req: Request, res: Response) {
-  try {
-    const { username } = res.locals.validated.params as { username: string };
+    try {
+      const { username } = res.locals.validated.params as { username: string };
 
-    const user = await this.getUserPublicProfileUseCase.execute(username);
+      const user = await this.getUserPublicProfileUseCase.execute(username);
 
-    res.json(toUserPublicProfileResponse(user));
-  } catch (error: any) {
-    res.status(404).json({ error: error.message });
+      res.json(toUserPublicProfileResponse(user));
+    } catch (error: any) {
+      res.status(404).json({ error: error.message });
+    }
   }
-}
 
 }

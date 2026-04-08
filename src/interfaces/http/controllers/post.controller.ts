@@ -23,7 +23,7 @@ export class PostController {
     private updatePostUseCase: UpdatePostUseCase
   ) { }
 
-  async handle(req: Request, res: Response): Promise<Response> {
+  async handle(req: Request, res: Response)  {
     try {
       const userId = req.user?.userId; //  viene del middleware
 
@@ -72,7 +72,7 @@ export class PostController {
       const userId = req.user?.userId;
 
       if (!userId) {
-        return res.status(401).json({ message: "No autorizado" });
+        return res.status(401).json({ error: "No autorizado" });
       }
 
       const posts = await this.getMyPostsUseCase.execute(userId);
@@ -80,7 +80,7 @@ export class PostController {
       return res.json(posts.map(toPostWithAuthorResponse));
     } catch (error: any) {
       return res.status(500).json({
-        message: error.message || "Error obteniendo posts"
+        error: error.message || "Error obteniendo posts"
       });
     }
   }

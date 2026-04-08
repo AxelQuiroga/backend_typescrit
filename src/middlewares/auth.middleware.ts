@@ -28,6 +28,6 @@ export function authMiddleware(
 
         next();
     } catch (error) {
-        res.status(401).json({ message: "No autorizado" });
+        res.status(401).json({ error: "No autorizado" });
     }
 }
