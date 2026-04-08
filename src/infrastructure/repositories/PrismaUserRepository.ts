@@ -13,7 +13,7 @@ export class PrismaUserRepository implements UserRepository {
   async create(data: {
     email: string;
     password: string;
-    username: string, unique: true;
+    username: string;
     role: "USER" | "ADMIN";
   }): Promise<User> {
     return prisma.user.create({

@@ -8,31 +8,6 @@ export class RegisterUserUseCase {
 
   async execute(data: RegisterUserInput): Promise<UserOutput> {
 
-    //  Validar existencia de campos
-    if (!data.email || !data.password || !data.username) {
-      throw new Error("Faltan campos obligatorios");
-    }
-
-    //  Validar tipos (extra pro)
-    if (typeof data.email !== "string" ||
-      typeof data.password !== "string" ||
-      typeof data.username !== "string") {
-      throw new Error("Datos inválidos");
-    }
-
-    //  Validaciones de contenido
-    if (!data.email.includes("@")) {
-      throw new Error("Email inválido");
-    }
-
-    if (data.password.length < 6) {
-      throw new Error("Password muy corta");
-    }
-
-    if (data.username.length < 3) {
-      throw new Error("Username muy corto");
-    }
-
     // Verificar si existe
     const existingUser = await this.userRepository.findByEmail(data.email);
 

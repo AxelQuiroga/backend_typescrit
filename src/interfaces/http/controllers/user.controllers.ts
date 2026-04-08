@@ -37,7 +37,7 @@ export class UserController {
 
       res.status(201).json(toUserPrivateProfileResponse(user));
     } catch (error: any) {
-      res.status(400).json({ message: error.message });
+      res.status(400).json({ error: error.message });
     }
   }
 
@@ -52,7 +52,7 @@ export class UserController {
 
       res.json(toLoginResponse(result));
     } catch (error: any) {
-      res.status(400).json({ message: error.message });
+      res.status(400).json({ error: error.message });
     }
   }
 
@@ -65,7 +65,7 @@ export class UserController {
 
       res.json(toUserPrivateProfileResponse(user));
     } catch (error: any) {
-      res.status(400).json({ message: error.message });
+      res.status(400).json({ error: error.message });
     }
   }
 
@@ -82,7 +82,7 @@ export class UserController {
 
       res.json(toUserPrivateProfileResponse(updatedUser));
     } catch (error: any) {
-      res.status(400).json({ message: error.message });
+      res.status(400).json({ error: error.message });
     }
   }
 
@@ -94,7 +94,7 @@ export class UserController {
 
     res.json(toUserPublicProfileResponse(user));
   } catch (error: any) {
-    res.status(404).json({ message: error.message });
+    res.status(404).json({ error: error.message });
   }
 }
 
