@@ -48,7 +48,10 @@ export class PostController {
       // Extraer y validar query params
       const { page, limit } = res.locals.validated.query as { page: number; limit: number };
 
-      const { posts, total } = await this.getPostsUseCase.execute(page, limit);
+      // Extraer userId del JWT (puede ser undefined si no está autenticado)
+      const userId = req.user?.userId;
+
+      const { posts, total } = await this.getPostsUseCase.execute(page, limit, userId);
       const response: GetPostsResponse = {
         data: posts.map(toPostWithAuthorResponse),
         meta: {

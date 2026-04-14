@@ -46,10 +46,12 @@ export function toPostWithAuthorResponse(
     id: output.id,
     title: output.title,
     content: output.content,
-    createdAt: output.createdAt,
+    createdAt: output.createdAt.toISOString(),
     author: {
       id: output.author.id,
       username: output.author.username
-    }
+    },
+    likesCount: output.likesCount,
+    userHasLiked: output.userHasLiked
   };
 }

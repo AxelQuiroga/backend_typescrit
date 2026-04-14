@@ -1,11 +1,13 @@
 import { Router } from "express";
 import { authMiddleware } from "../../../middlewares/auth.middleware.js";
 import { PrismaPostRepository } from "../../../infrastructure/repositories/PrismaPostRepository.js";
+import { PrismaLikeRepository } from "../../../infrastructure/repositories/PrismaLikeRepository.js";
 import { CreatePostUseCase } from "../../../application/use-cases/post/CreatePostUseCase.js";
 import { GetPostsUseCase } from "../../../application/use-cases/post/GetPostsUseCase.js";
 import { GetMyPostsUseCase } from "../../../application/use-cases/post/GetMyPostsUseCase.js";
 import { DeletePostUseCase } from "../../../application/use-cases/post/DeletePostUseCase.js";
 import { UpdatePostUseCase } from "../../../application/use-cases/post/UpdatePostUseCase.js";
+import { GetPostLikesCountUseCase } from "../../../application/use-cases/like/GetPostLikesCountUseCase.js";
 import { PostController } from "../controllers/post.controller.js";
 import { validate } from "../../../middlewares/validate.middleware.js";
 import {
@@ -19,9 +21,11 @@ const router = Router();
 
 // dependencias manuales (sin DI framework)
 const postRepository = new PrismaPostRepository();
+const likeRepository = new PrismaLikeRepository();
 
 const createPostUseCase = new CreatePostUseCase(postRepository);
-const getPostsUseCase = new GetPostsUseCase(postRepository);
+const getPostLikesCountUseCase = new GetPostLikesCountUseCase(likeRepository);
+const getPostsUseCase = new GetPostsUseCase(postRepository, getPostLikesCountUseCase);
 const getMyPostsUseCase = new GetMyPostsUseCase(postRepository);
 const deletePostUseCase = new DeletePostUseCase(postRepository);
 const updatePostUseCase = new UpdatePostUseCase(postRepository);

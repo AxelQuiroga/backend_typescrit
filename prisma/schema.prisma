@@ -19,6 +19,7 @@ model User {
   role      Role     @default(USER)
   posts     Post[]
   likes     Like[]
+  comments  Comment[]  // ← Relación inversa: comentarios del usuario
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -30,6 +31,7 @@ model Post {
   author    User     @relation(fields: [authorId], references: [id])
   authorId  String
   likes     Like[]
+  comments  Comment[]  // ← Relación inversa: comentarios del post
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -53,6 +55,33 @@ model Like {
   @@index([postId])
 }
 
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  
+  // Autor
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+  
+  // Post
+  post      Post     @relation(fields: [postId], references: [id])
+  postId    String
+  
+  // Jerarquía: comentario padre (null si es comentario raíz)
+  parent    Comment? @relation("CommentReplies", fields: [parentId], references: [id])
+  parentId  String?
+  
+  // Respuestas anidadas
+  replies   Comment[] @relation("CommentReplies")
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+ 
+  // Índices para queries eficientes
+  @@index([postId])
+  @@index([parentId])
+  @@index([authorId])
+}
 
 enum Role {
   USER

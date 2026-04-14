@@ -2,9 +2,11 @@ export interface PostWithAuthorResponse {
   id: string;
   title: string;
   content: string;
-  createdAt: Date;
+  createdAt: string; // ISO string
   author: {
     id: string;
     username: string;
   };
+  likesCount: number;
+  userHasLiked: boolean;
 }
