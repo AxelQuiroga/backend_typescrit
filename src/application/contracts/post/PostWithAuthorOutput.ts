@@ -3,12 +3,11 @@ export interface PostWithAuthorOutput {
   title: string;
   content: string;
   createdAt: Date;
+  likesCount: number;
+  userHasLiked: boolean;
   author: {
     id: string;
     username: string;
   };
-  /** Cantidad total de likes del post */
-  likesCount: number;
-  /** True si el usuario autenticado dio like a este post */
-  userHasLiked: boolean;
+
 }

@@ -7,36 +7,30 @@ import { CreateCommentUseCase } from "../../../application/use-cases/comment/Cre
 import { GetPostCommentsUseCase } from "../../../application/use-cases/comment/GetPostCommentsUseCase.js";
 import { PrismaCommentRepository } from "../../../infrastructure/repositories/PrismaCommentRepository.js";
 import { PrismaPostRepository } from "../../../infrastructure/repositories/PrismaPostRepository.js";
+import { eventBus } from "../../../config/events.config.js";  // ← Importar de config
 import {
   commentIdParamsSchema,
   createCommentSchema,
   paginationQuerySchema
 } from "../validators/comment.schema.js";
 
-// Repositorios
 const commentRepository = new PrismaCommentRepository();
 const postRepository = new PrismaPostRepository();
 
-// Use Cases (solo los necesarios para rutas de posts)
-const createCommentUseCase = new CreateCommentUseCase(commentRepository, postRepository);
+// Use Cases
+const createCommentUseCase = new CreateCommentUseCase(commentRepository, postRepository, eventBus);
 const getPostCommentsUseCase = new GetPostCommentsUseCase(commentRepository);
 
-// Controller (con subset de use cases)
 const commentController = new CommentController(
   createCommentUseCase,
-  {} as any, // update - no usado aquí
-  {} as any, // delete - no usado aquí
+  {} as any,
+  {} as any,
   getPostCommentsUseCase,
-  {} as any  // getReplies - no usado aquí
+  {} as any
 );
 
 const router = Router();
 
-/**
- * POST /posts/:id/comments
- * Crea un comentario o respuesta en un post.
- * Rate limit: 10 comentarios por minuto por IP.
- */
 router.post(
   "/:id/comments",
   authMiddleware,
@@ -45,10 +39,6 @@ router.post(
   (req, res) => commentController.create(req, res)
 );
 
-/**
- * GET /posts/:id/comments
- * Lista comentarios raíz de un post (paginado).
- */
 router.get(
   "/:id/comments",
   validate({ params: commentIdParamsSchema, query: paginationQuerySchema }),

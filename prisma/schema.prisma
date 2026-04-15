@@ -82,6 +82,22 @@ model Comment {
   @@index([parentId])
   @@index([authorId])
 }
+  // Agregar al final de schema.prisma
+model Notification {
+  id          String   @id @default(uuid())
+  userId      String   // Destinatario
+  type        String   // 'COMMENT_ON_POST', 'REPLY_ON_COMMENT', 'LIKE_ON_POST'
+  title       String
+  message     String
+  read        Boolean  @default(false)
+  actorId     String   // Quién generó la notificación
+  postId      String?
+  commentId   String?
+  createdAt   DateTime @default(now())
+  
+  @@index([userId, read])
+  @@index([createdAt])
+}
 
 enum Role {
   USER

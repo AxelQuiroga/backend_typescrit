@@ -2,6 +2,7 @@ import type { CommentRepository } from "../../../domain/repositories/CommentRepo
 import type { PostRepository } from "../../../domain/repositories/PostRepository.js";
 import type { CreateCommentInput } from "../../contracts/comment/CreateCommentInput.js";
 import type { CommentOutput } from "../../contracts/comment/CommentOutput.js";
+import type { EventBus } from "../../../domain/events/EventBus.js";
 
 /**
  * Caso de uso para crear un comentario o respuesta.
@@ -34,7 +35,8 @@ import type { CommentOutput } from "../../contracts/comment/CommentOutput.js";
 export class CreateCommentUseCase {
   constructor(
     private commentRepository: CommentRepository,
-    private postRepository: PostRepository
+    private postRepository: PostRepository,
+    private eventBus: EventBus
   ) {}
 
   /**
@@ -86,6 +88,17 @@ export class CreateCommentUseCase {
       authorId: userId,
       postId: data.postId,
       parentId: data.parentId || null
+    });
+
+     // Emitir evento (no esperamos respuesta)
+    this.eventBus.emit('comment.created', {
+      type: 'COMMENT_CREATED',
+      postId: data.postId,
+      postAuthorId: post.authorId,
+      commentId: comment.id,
+      commentAuthorId: userId,
+      commentContent: comment.content,
+      parentCommentId: data.parentId
     });
 
     // 5. Construir output (el repo no devuelve author info, lo armamos manual)

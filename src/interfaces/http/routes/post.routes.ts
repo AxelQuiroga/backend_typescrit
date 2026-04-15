@@ -26,7 +26,7 @@ const likeRepository = new PrismaLikeRepository();
 const createPostUseCase = new CreatePostUseCase(postRepository);
 const getPostLikesCountUseCase = new GetPostLikesCountUseCase(likeRepository);
 const getPostsUseCase = new GetPostsUseCase(postRepository, getPostLikesCountUseCase);
-const getMyPostsUseCase = new GetMyPostsUseCase(postRepository);
+const getMyPostsUseCase = new GetMyPostsUseCase(postRepository, likeRepository);
 const deletePostUseCase = new DeletePostUseCase(postRepository);
 const updatePostUseCase = new UpdatePostUseCase(postRepository);
 

@@ -7,9 +7,8 @@ import likeRoutes from "./interfaces/http/routes/like.routes.js";
 import postCommentRoutes from "./interfaces/http/routes/post-comment.routes.js";
 import commentRoutes from "./interfaces/http/routes/comment.routes.js";
 import cors from "cors";
-import { env } from "./config/env.js"; 
-
-
+import { env } from "./config/env.js";
+import "./config/events.config.js"; // ← Importar para registrar listeners al iniciar
 
 const app = express();
 
