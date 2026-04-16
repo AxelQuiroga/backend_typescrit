@@ -1,9 +1,13 @@
-export interface CommentCreatedEvent {
-  type: 'COMMENT_CREATED';
-  postId: string;
-  postAuthorId: string;      // Quién recibe la notificación
-  commentId: string;
-  commentAuthorId: string;   // Quién comentó (actor)
-  commentContent: string;
-  parentCommentId?: string;  // Si es respuesta
-}
+import { z } from 'zod';
+
+export const CommentCreatedEventSchema = z.object({
+  type: z.literal('COMMENT_CREATED'),
+  postId: z.string().uuid(),
+  postAuthorId: z.string().uuid(),
+  commentId: z.string().uuid(),
+  commentAuthorId: z.string().uuid(),
+  commentContent: z.string(),
+  parentCommentId: z.string().uuid().nullable().optional()
+});
+
+export type CommentCreatedEvent = z.infer<typeof CommentCreatedEventSchema>;

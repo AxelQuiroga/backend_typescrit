@@ -42,7 +42,7 @@ export const updateProfileSchema = {
     username: usernameField.optional()
   })
   .refine((data) => {
-    return Object.values(data).some((v) => v !== undefined);
+    return Object.values(data).some((v) => v !== undefined && v !== null);
   }, {
     message: "Debe enviar al menos un campo para actualizar"
   })

@@ -6,6 +6,7 @@ import postRoutes from "./interfaces/http/routes/post.routes.js";
 import likeRoutes from "./interfaces/http/routes/like.routes.js";
 import postCommentRoutes from "./interfaces/http/routes/post-comment.routes.js";
 import commentRoutes from "./interfaces/http/routes/comment.routes.js";
+import notificationRoutes from "./interfaces/http/routes/notification.routes.js";
 import cors from "cors";
 import { env } from "./config/env.js";
 import "./config/events.config.js"; // ← Importar para registrar listeners al iniciar
@@ -14,7 +15,7 @@ const app = express();
 
 app.use(cors({
   origin: env.FRONTEND_URL,
-  credentials: true,  
+  credentials: true,
 }));
 
 app.use(express.json());
@@ -25,6 +26,7 @@ app.use("/posts", postRoutes);
 app.use("/posts", likeRoutes);        // Rutas de likes (POST /:id/like, DELETE /:id/like, GET /:id/likes)
 app.use("/posts", postCommentRoutes); // Rutas de comentarios en posts (POST /:id/comments, GET /:id/comments)
 app.use("/comments", commentRoutes); // Rutas de comentarios individuales (PUT /:id, DELETE /:id, GET /:id/replies)
+app.use("/notifications", notificationRoutes); // Rutas de notificaciones (GET /, GET /unread-count, PUT /:id/read, PUT /read-all)
 // SIEMPRE al final
 app.use(errorHandler);
 

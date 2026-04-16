@@ -7,6 +7,7 @@ import { UpdateCommentUseCase } from "../../../application/use-cases/comment/Upd
 import { DeleteCommentUseCase } from "../../../application/use-cases/comment/DeleteCommentUseCase.js";
 import { GetCommentRepliesUseCase } from "../../../application/use-cases/comment/GetCommentRepliesUseCase.js";
 import { PrismaCommentRepository } from "../../../infrastructure/repositories/PrismaCommentRepository.js";
+import { PrismaPostRepository } from "../../../infrastructure/repositories/PrismaPostRepository.js";
 import {
   commentIdParamsSchema,
   updateCommentSchema,
@@ -15,10 +16,11 @@ import {
 
 // Repositorios
 const commentRepository = new PrismaCommentRepository();
+const postRepository = new PrismaPostRepository();
 
 // Use Cases (solo para rutas de comentarios individuales)
 const updateCommentUseCase = new UpdateCommentUseCase(commentRepository);
-const deleteCommentUseCase = new DeleteCommentUseCase(commentRepository);
+const deleteCommentUseCase = new DeleteCommentUseCase(commentRepository, postRepository);
 const getCommentRepliesUseCase = new GetCommentRepliesUseCase(commentRepository);
 
 // Controller
