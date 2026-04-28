@@ -7,12 +7,13 @@ import { UnlikePostUseCase } from "../../../application/use-cases/like/UnlikePos
 import { GetPostLikesCountUseCase } from "../../../application/use-cases/like/GetPostLikesCountUseCase.js";
 import { PrismaLikeRepository } from "../../../infrastructure/repositories/PrismaLikeRepository.js";
 import { PrismaPostRepository } from "../../../infrastructure/repositories/PrismaPostRepository.js";
+import { prisma } from "../../../infrastructure/database/prisma.js";
 import { eventBus } from "../../../config/events.config.js";
 import { likePostParamsSchema } from "../validators/like.schema.js";
 
 // Repositorios
-const likeRepository = new PrismaLikeRepository();
-const postRepository = new PrismaPostRepository();
+const likeRepository = new PrismaLikeRepository(prisma);
+const postRepository = new PrismaPostRepository(prisma);
 
 // Use Cases
 const likePostUseCase = new LikePostUseCase(likeRepository, postRepository, eventBus);

@@ -36,18 +36,7 @@ export class NotificationListeners {
           read: false
         });
       } catch (error) {
-        console.error('[NotificationListener] Error al crear notificación:', {
-          error: error instanceof Error ? error.message : String(error),
-          stack: error instanceof Error ? error.stack : undefined,
-          event: {
-            type: event.type,
-            postId: event.postId,
-            postAuthorId: event.postAuthorId,
-            commentId: event.commentId,
-            commentAuthorId: event.commentAuthorId
-          },
-          timestamp: new Date().toISOString()
-        });
+        console.error('Error al crear notificación:', error);
       }
     });
 
@@ -72,18 +61,7 @@ export class NotificationListeners {
           read: false
         });
       } catch (error) {
-        console.error('[NotificationListener] Error al crear notificación de respuesta:', {
-          error: error instanceof Error ? error.message : String(error),
-          stack: error instanceof Error ? error.stack : undefined,
-          event: {
-            type: event.type,
-            postId: event.postId,
-            commentId: event.commentId,
-            parentCommentId: event.parentCommentId,
-            commentAuthorId: event.commentAuthorId
-          },
-          timestamp: new Date().toISOString()
-        });
+        console.error('Error al crear notificación de respuesta:', error);
       }
     });
 
@@ -104,7 +82,9 @@ export class NotificationListeners {
           postId: validated.postId,
           type: 'LIKE_ON_POST'
         });
-        if (existing.length > 0) return;
+        if (existing.length > 0) {
+          return;
+        }
 
         await this.notificationRepo.create({
           userId: validated.postAuthorId,
@@ -116,12 +96,7 @@ export class NotificationListeners {
           read: false
         });
       } catch (error) {
-        console.error('[NotificationListener] Error al crear notificación de like:', {
-          error: error instanceof Error ? error.message : String(error),
-          stack: error instanceof Error ? error.stack : undefined,
-          event,
-          timestamp: new Date().toISOString()
-        });
+        console.error('Error al crear notificación de like:', error);
       }
     });
 
@@ -137,12 +112,7 @@ export class NotificationListeners {
           type: 'LIKE_ON_POST'
         });
       } catch (error) {
-        console.error('[NotificationListener] Error al eliminar notificación de like:', {
-          error: error instanceof Error ? error.message : String(error),
-          stack: error instanceof Error ? error.stack : undefined,
-          event,
-          timestamp: new Date().toISOString()
-        });
+        console.error('Error al eliminar notificación de like:', error);
       }
     });
 
@@ -151,20 +121,11 @@ export class NotificationListeners {
       try {
         const validated = PostDeletedEventSchema.parse(event);
 
-        const deleted = await this.notificationRepo.deleteByCriteria({
+        await this.notificationRepo.deleteByCriteria({
           postId: validated.postId
         });
-
-        if (deleted > 0) {
-          console.log(`[NotificationListener] Cleanup: ${deleted} notificaciones eliminadas para post ${validated.postId}`);
-        }
       } catch (error) {
-        console.error('[NotificationListener] Error al limpiar notificaciones:', {
-          error: error instanceof Error ? error.message : String(error),
-          stack: error instanceof Error ? error.stack : undefined,
-          event,
-          timestamp: new Date().toISOString()
-        });
+        console.error('Error al limpiar notificaciones:', error);
       }
     });
   }

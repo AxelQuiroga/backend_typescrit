@@ -1,34 +1,40 @@
-import { prisma } from "../database/prisma.js";
+import { PrismaClient } from "@prisma/client";
 import type { PostRepository } from "../../domain/repositories/PostRepository.js";
 
 export class PrismaPostRepository implements PostRepository {
+  private prisma: PrismaClient;
+
+  constructor(prisma: PrismaClient) {
+    this.prisma = prisma;
+  }
 
   async create(data: {
     title: string;
     content: string;
     authorId: string;
   }) {
-    return prisma.post.create({
+    return await this.prisma.post.create({
       data
     });
   }
- async findAll(page: number, limit: number) {
-  const skip = (page - 1) * limit;
+
+  async findAll(page: number, limit: number) {
+    const skip = (page - 1) * limit;
   
-  const [posts, total] = await Promise.all([
-    prisma.post.findMany({
-      skip,
-      take: limit,
-      include: { author: true }
-    }),
-    prisma.post.count()
-  ]);
+    const [posts, total] = await Promise.all([
+      this.prisma.post.findMany({
+        skip,
+        take: limit,
+        include: { author: true }
+      }),
+      this.prisma.post.count()
+    ]);
   
-  return { posts, total };
-}
+    return { posts, total };
+  }
 
   async findByAuthorId(authorId: string) {
-    return prisma.post.findMany({
+    return await this.prisma.post.findMany({
       where: {
         authorId: authorId
       },
@@ -39,7 +45,7 @@ export class PrismaPostRepository implements PostRepository {
   }
 
   async findById(id: string) {
-    return prisma.post.findUnique({
+    return await this.prisma.post.findUnique({
       where: {
         id: id
       },
@@ -50,13 +56,13 @@ export class PrismaPostRepository implements PostRepository {
   }
 
   async deleteById(id: string) {
-    await prisma.post.delete({
-    where: { id }
-  });
+    await this.prisma.post.delete({
+      where: { id }
+    });
   }
 
   async update(id: string, data: { title?: string; content?: string }) {
-    return prisma.post.update({
+    return await this.prisma.post.update({
       where: { id },
       data
     });

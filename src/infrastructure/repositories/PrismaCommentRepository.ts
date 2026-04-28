@@ -1,4 +1,4 @@
-import { prisma } from "../database/prisma.js";
+import type { PrismaClient } from "@prisma/client";
 import type { Comment } from "../../domain/entities/Comment.js";
 import type { CommentRepository } from "../../domain/repositories/CommentRepository.js";
 
@@ -13,6 +13,7 @@ import type { CommentRepository } from "../../domain/repositories/CommentReposit
  * - Ordenamiento por defecto (createdAt DESC)
  */
 export class PrismaCommentRepository implements CommentRepository {
+  constructor(private prisma: PrismaClient) {}
   /**
    * Crea un comentario en la base de datos.
    *
@@ -25,7 +26,7 @@ export class PrismaCommentRepository implements CommentRepository {
     postId: string;
     parentId?: string | null;
   }): Promise<Comment> {
-    const comment = await prisma.comment.create({
+    const comment = await this.prisma.comment.create({
       data: {
         content: data.content,
         authorId: data.authorId,
@@ -50,7 +51,7 @@ export class PrismaCommentRepository implements CommentRepository {
    */
   async update(id: string, content: string): Promise<Comment | null> {
     try {
-      const comment = await prisma.comment.update({
+      const comment = await this.prisma.comment.update({
         where: { id },
         data: { content }
       });
@@ -77,7 +78,7 @@ export class PrismaCommentRepository implements CommentRepository {
    */
   async delete(id: string): Promise<boolean> {
     try {
-      await prisma.comment.delete({
+      await this.prisma.comment.delete({
         where: { id }
       });
       return true;
@@ -97,7 +98,7 @@ export class PrismaCommentRepository implements CommentRepository {
    * @returns Comment o null si no existe
    */
   async findById(id: string): Promise<Comment | null> {
-    const comment = await prisma.comment.findUnique({
+    const comment = await this.prisma.comment.findUnique({
       where: { id }
     });
 
@@ -124,7 +125,7 @@ export class PrismaCommentRepository implements CommentRepository {
     const skip = (page - 1) * limit;
 
     const [comments, total] = await Promise.all([
-      prisma.comment.findMany({
+      this.prisma.comment.findMany({
         where: {
           postId,
           parentId: null // Solo comentarios raíz
@@ -133,7 +134,7 @@ export class PrismaCommentRepository implements CommentRepository {
         take: limit,
         orderBy: { createdAt: "desc" }
       }),
-      prisma.comment.count({
+      this.prisma.comment.count({
         where: {
           postId,
           parentId: null
@@ -167,13 +168,13 @@ export class PrismaCommentRepository implements CommentRepository {
     const skip = (page - 1) * limit;
 
     const [comments, total] = await Promise.all([
-      prisma.comment.findMany({
+      this.prisma.comment.findMany({
         where: { parentId },
         skip,
         take: limit,
         orderBy: { createdAt: "desc" }
       }),
-      prisma.comment.count({
+      this.prisma.comment.count({
         where: { parentId }
       })
     ]);
@@ -191,7 +192,7 @@ export class PrismaCommentRepository implements CommentRepository {
    * @returns Número total de comentarios raíz
    */
   async countByPostId(postId: string): Promise<number> {
-    return prisma.comment.count({
+    return this.prisma.comment.count({
       where: {
         postId,
         parentId: null
@@ -210,7 +211,7 @@ export class PrismaCommentRepository implements CommentRepository {
    * Más eficiente que findById() porque solo cuenta, no carga el registro.
    */
   async isAuthor(commentId: string, userId: string): Promise<boolean> {
-    const count = await prisma.comment.count({
+    const count = await this.prisma.comment.count({
       where: {
         id: commentId,
         authorId: userId

@@ -7,6 +7,7 @@ import { GetUnreadCountUseCase } from "../../../application/use-cases/notificati
 import { MarkAsReadUseCase } from "../../../application/use-cases/notification/MarkAsReadUseCase.js";
 import { MarkAllAsReadUseCase } from "../../../application/use-cases/notification/MarkAllAsReadUseCase.js";
 import { PrismaNotificationRepository } from "../../../infrastructure/repositories/PrismaNotificationRepository.js";
+import { prisma } from "../../../infrastructure/database/prisma.js";
 import {
   getNotificationsSchema,
   notificationIdSchema
@@ -14,7 +15,7 @@ import {
 
 const router = Router();
 
-const notificationRepository = new PrismaNotificationRepository();
+const notificationRepository = new PrismaNotificationRepository(prisma);
 
 const getNotificationsUseCase = new GetNotificationsUseCase(notificationRepository);
 const getUnreadCountUseCase = new GetUnreadCountUseCase(notificationRepository);

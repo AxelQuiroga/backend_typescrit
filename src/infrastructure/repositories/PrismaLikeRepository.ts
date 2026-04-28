@@ -1,11 +1,13 @@
-import { prisma } from "../database/prisma.js"; 
+import type { PrismaClient } from "@prisma/client";
 import type { Like } from "../../domain/entities/Like.js";
 import type { LikeRepository } from "../../domain/repositories/LikeRepository.js";
 
 export class PrismaLikeRepository implements LikeRepository {
+  constructor(private prisma: PrismaClient) {}
+
   async create(userId: string, postId: string): Promise<Like | null> {
     try {
-      const like = await prisma.like.create({
+      const like = await this.prisma.like.create({
         data: { userId, postId }
       });
       return {
@@ -25,7 +27,7 @@ export class PrismaLikeRepository implements LikeRepository {
 
   async delete(userId: string, postId: string): Promise<boolean> {
     try {
-      await prisma.like.delete({
+      await this.prisma.like.delete({
         where: {
           userId_postId: { userId, postId }
         }
@@ -41,20 +43,20 @@ export class PrismaLikeRepository implements LikeRepository {
   }
 
   async countByPostId(postId: string): Promise<number> {
-    return prisma.like.count({
+    return this.prisma.like.count({
       where: { postId }
     });
   }
 
   async exists(userId: string, postId: string): Promise<boolean> {
-    const count = await prisma.like.count({
+    const like = await this.prisma.like.count({
       where: { userId, postId }
     });
-    return count > 0;
+    return like > 0;
   }
 
   async findByPostId(postId: string): Promise<Like[]> {
-    const likes = await prisma.like.findMany({
+    const likes = await this.prisma.like.findMany({
       where: { postId },
       orderBy: { createdAt: "desc" },
       include: {

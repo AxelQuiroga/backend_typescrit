@@ -9,6 +9,7 @@ import {
   publicProfileSchema
 } from "../validators/user.validator.js";
 import { PrismaUserRepository } from "../../../infrastructure/repositories/PrismaUserRepository.js";
+import { prisma } from "../../../infrastructure/database/prisma.js";
 import { RegisterUserUseCase } from "../../../application/use-cases/user/RegisterUserUseCase.js";
 import { LoginUserUseCase } from "../../../application/use-cases/user/LoginUserUseCase.js";
 import { GetMyProfileUseCase } from "../../../application/use-cases/user/GetMyProfileUseCase.js";
@@ -17,7 +18,7 @@ import { GetUserPublicProfileUseCase } from "../../../application/use-cases/user
 
 
 const router = Router();
-const userRepo = new PrismaUserRepository();
+const userRepo = new PrismaUserRepository(prisma);
 
 const controller = new UserController(
   new RegisterUserUseCase(userRepo),
