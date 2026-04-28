@@ -1,4 +1,6 @@
 import type { LikeRepository } from "../../../domain/repositories/LikeRepository.js";
+import type { PostRepository } from "../../../domain/repositories/PostRepository.js";
+import type { EventBus } from "../../../domain/events/EventBus.js";
 import type { UnlikePostInput } from "../../contracts/like/UnlikePostInput.js";
 
 /**
@@ -19,7 +21,11 @@ import type { UnlikePostInput } from "../../contracts/like/UnlikePostInput.js";
  * ```
  */
 export class UnlikePostUseCase {
-  constructor(private likeRepository: LikeRepository) {}
+  constructor(
+    private likeRepository: LikeRepository,
+    private postRepository: PostRepository,
+    private eventBus: EventBus
+  ) {}
 
   /**
    * Ejecuta la eliminación de un like.
@@ -29,6 +35,22 @@ export class UnlikePostUseCase {
    * @returns true si se eliminó el like, false si no existía
    */
   async execute(userId: string, data: UnlikePostInput): Promise<boolean> {
-    return this.likeRepository.delete(userId, data.postId);
+    const post = await this.postRepository.findById(data.postId);
+    if (!post) {
+      throw new Error("Post no encontrado");
+    }
+
+    const deleted = await this.likeRepository.delete(userId, data.postId);
+
+    if (deleted) {
+      this.eventBus.emit('like.removed', {
+        type: 'LIKE_REMOVED',
+        postId: data.postId,
+        postAuthorId: post.authorId,
+        likerId: userId
+      });
+    }
+
+    return deleted;
   }
 }

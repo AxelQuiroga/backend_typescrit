@@ -2,6 +2,8 @@ import type { NotificationRepository } from "../../domain/repositories/Notificat
 import type { CommentRepository } from "../../domain/repositories/CommentRepository.js";
 import type { EventBus } from "../../domain/events/EventBus.js";
 import { CommentCreatedEventSchema } from "../../domain/events/NotificationEvents.js";
+import { LikeCreatedEventSchema, LikeRemovedEventSchema } from "../../domain/events/LikeEvents.js";
+import { PostDeletedEventSchema } from "../../domain/events/PostEvents.js";
 
 export class NotificationListeners {
   constructor(
@@ -80,6 +82,87 @@ export class NotificationListeners {
             parentCommentId: event.parentCommentId,
             commentAuthorId: event.commentAuthorId
           },
+          timestamp: new Date().toISOString()
+        });
+      }
+    });
+
+    // Listener 3: Notificar al autor del post cuando le dan like
+    this.eventBus.on('like.created', async (event) => {
+      try {
+        const validated = LikeCreatedEventSchema.parse(event);
+
+        // No notificar auto-likes
+        if (validated.postAuthorId === validated.likerId) {
+          return;
+        }
+
+        // Idempotencia: verificar si ya existe la notificación
+        const existing = await this.notificationRepo.findByCriteria({
+          userId: validated.postAuthorId,
+          actorId: validated.likerId,
+          postId: validated.postId,
+          type: 'LIKE_ON_POST'
+        });
+        if (existing.length > 0) return;
+
+        await this.notificationRepo.create({
+          userId: validated.postAuthorId,
+          type: 'LIKE_ON_POST',
+          title: 'Nuevo me gusta',
+          message: 'Alguien dio me gusta a tu post',
+          actorId: validated.likerId,
+          postId: validated.postId,
+          read: false
+        });
+      } catch (error) {
+        console.error('[NotificationListener] Error al crear notificación de like:', {
+          error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+          event,
+          timestamp: new Date().toISOString()
+        });
+      }
+    });
+
+    // Listener 4: Eliminar notificación de like cuando se quita
+    this.eventBus.on('like.removed', async (event) => {
+      try {
+        const validated = LikeRemovedEventSchema.parse(event);
+
+        await this.notificationRepo.deleteByCriteria({
+          userId: validated.postAuthorId,
+          actorId: validated.likerId,
+          postId: validated.postId,
+          type: 'LIKE_ON_POST'
+        });
+      } catch (error) {
+        console.error('[NotificationListener] Error al eliminar notificación de like:', {
+          error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+          event,
+          timestamp: new Date().toISOString()
+        });
+      }
+    });
+
+    // Listener 5: Cleanup - eliminar notificaciones huérfanas al borrar post
+    this.eventBus.on('post.deleted', async (event) => {
+      try {
+        const validated = PostDeletedEventSchema.parse(event);
+
+        const deleted = await this.notificationRepo.deleteByCriteria({
+          postId: validated.postId
+        });
+
+        if (deleted > 0) {
+          console.log(`[NotificationListener] Cleanup: ${deleted} notificaciones eliminadas para post ${validated.postId}`);
+        }
+      } catch (error) {
+        console.error('[NotificationListener] Error al limpiar notificaciones:', {
+          error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+          event,
           timestamp: new Date().toISOString()
         });
       }

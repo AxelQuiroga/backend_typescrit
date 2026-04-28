@@ -7,6 +7,7 @@ import { UnlikePostUseCase } from "../../../application/use-cases/like/UnlikePos
 import { GetPostLikesCountUseCase } from "../../../application/use-cases/like/GetPostLikesCountUseCase.js";
 import { PrismaLikeRepository } from "../../../infrastructure/repositories/PrismaLikeRepository.js";
 import { PrismaPostRepository } from "../../../infrastructure/repositories/PrismaPostRepository.js";
+import { eventBus } from "../../../config/events.config.js";
 import { likePostParamsSchema } from "../validators/like.schema.js";
 
 // Repositorios
@@ -14,8 +15,8 @@ const likeRepository = new PrismaLikeRepository();
 const postRepository = new PrismaPostRepository();
 
 // Use Cases
-const likePostUseCase = new LikePostUseCase(likeRepository, postRepository);
-const unlikePostUseCase = new UnlikePostUseCase(likeRepository);
+const likePostUseCase = new LikePostUseCase(likeRepository, postRepository, eventBus);
+const unlikePostUseCase = new UnlikePostUseCase(likeRepository, postRepository, eventBus);
 const getPostLikesCountUseCase = new GetPostLikesCountUseCase(likeRepository);
 
 // Controller

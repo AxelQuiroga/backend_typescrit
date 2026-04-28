@@ -1,4 +1,5 @@
 import type { PostRepository } from "../../../domain/repositories/PostRepository.js";
+import type { EventBus } from "../../../domain/events/EventBus.js";
 import type { CreatePostInput } from "../../contracts/post/CreatePostInput.js";
 import type { PostOutput } from "../../contracts/post/PostOutput.js";
 
@@ -24,7 +25,10 @@ import type { PostOutput } from "../../contracts/post/PostOutput.js";
  * ```
  */
 export class CreatePostUseCase {
-  constructor(private postRepository: PostRepository) {}
+  constructor(
+    private postRepository: PostRepository,
+    private eventBus: EventBus
+  ) {}
 
   /**
    * Ejecuta la creación de un post.
@@ -60,6 +64,14 @@ export class CreatePostUseCase {
       title: data.title,
       content: data.content,
       authorId: userId //  clave
+    });
+
+    // Emitir evento (para futuros listeners: analytics, followers, etc.)
+    this.eventBus.emit('post.created', {
+      type: 'POST_CREATED',
+      postId: post.id,
+      authorId: userId,
+      title: post.title
     });
 
     // Response DTO

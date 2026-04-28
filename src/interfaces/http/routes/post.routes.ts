@@ -10,6 +10,7 @@ import { UpdatePostUseCase } from "../../../application/use-cases/post/UpdatePos
 import { GetPostLikesCountUseCase } from "../../../application/use-cases/like/GetPostLikesCountUseCase.js";
 import { PostController } from "../controllers/post.controller.js";
 import { validate } from "../../../middlewares/validate.middleware.js";
+import { eventBus } from "../../../config/events.config.js";
 import {
   createPostSchema,
   getPostsSchema,
@@ -23,11 +24,11 @@ const router = Router();
 const postRepository = new PrismaPostRepository();
 const likeRepository = new PrismaLikeRepository();
 
-const createPostUseCase = new CreatePostUseCase(postRepository);
+const createPostUseCase = new CreatePostUseCase(postRepository, eventBus);
 const getPostLikesCountUseCase = new GetPostLikesCountUseCase(likeRepository);
 const getPostsUseCase = new GetPostsUseCase(postRepository, getPostLikesCountUseCase);
 const getMyPostsUseCase = new GetMyPostsUseCase(postRepository, likeRepository);
-const deletePostUseCase = new DeletePostUseCase(postRepository);
+const deletePostUseCase = new DeletePostUseCase(postRepository, eventBus);
 const updatePostUseCase = new UpdatePostUseCase(postRepository);
 
 const postController = new PostController(

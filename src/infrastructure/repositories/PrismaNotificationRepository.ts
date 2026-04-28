@@ -43,4 +43,28 @@ export class PrismaNotificationRepository implements NotificationRepository {
       where: { userId, read: false }
     });
   }
+
+  async findByCriteria(criteria: {
+    userId?: string;
+    actorId?: string;
+    postId?: string;
+    type?: Notification['type'];
+  }): Promise<Notification[]> {
+    const results = await prisma.notification.findMany({
+      where: criteria
+    });
+    return results as Notification[];
+  }
+
+  async deleteByCriteria(criteria: {
+    userId?: string;
+    actorId?: string;
+    postId?: string;
+    type?: Notification['type'];
+  }): Promise<number> {
+    const result = await prisma.notification.deleteMany({
+      where: criteria
+    });
+    return result.count;
+  }
 }

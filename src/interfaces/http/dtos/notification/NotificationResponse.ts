@@ -12,7 +12,7 @@ export interface NotificationResponse {
   userId: string;
 
   /** Tipo de notificación */
-  type: 'COMMENT_ON_POST' | 'REPLY_ON_COMMENT';
+  type: 'COMMENT_ON_POST' | 'REPLY_ON_COMMENT' | 'LIKE_ON_POST';
 
   /** Título de la notificación */
   title: string;

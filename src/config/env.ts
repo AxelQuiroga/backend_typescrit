@@ -14,4 +14,5 @@ export const env = {
   JWT_SECRET: getEnv("JWT_SECRET"),
   NODE_ENV: getEnv("NODE_ENV"),
   FRONTEND_URL: getEnv("FRONTEND_URL"),
+  RABBITMQ_URL: getEnv("RABBITMQ_URL"),
 };

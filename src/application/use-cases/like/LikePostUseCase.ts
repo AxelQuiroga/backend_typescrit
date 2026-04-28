@@ -1,5 +1,6 @@
 import type { LikeRepository } from "../../../domain/repositories/LikeRepository.js";
 import type { PostRepository } from "../../../domain/repositories/PostRepository.js";
+import type { EventBus } from "../../../domain/events/EventBus.js";
 import type { LikePostInput } from "../../contracts/like/LikePostInput.js";
 import type { LikeOutput } from "../../contracts/like/LikeOutput.js";
 
@@ -24,7 +25,8 @@ import type { LikeOutput } from "../../contracts/like/LikeOutput.js";
 export class LikePostUseCase {
   constructor(
     private likeRepository: LikeRepository,
-    private postRepository: PostRepository
+    private postRepository: PostRepository,
+    private eventBus: EventBus
   ) {}
 
   /**
@@ -52,6 +54,15 @@ export class LikePostUseCase {
     if (!like) {
       throw new Error("Error al crear el like");
     }
+
+    // Emitir evento (no esperamos respuesta)
+    this.eventBus.emit('like.created', {
+      type: 'LIKE_CREATED',
+      postId: data.postId,
+      postAuthorId: post.authorId,
+      likerId: userId,
+      likeId: like.id
+    });
 
     return {
       id: like.id,
