@@ -13,6 +13,8 @@ export interface PostRepository {
 
   findByAuthorId(authorId: string): Promise<PostWithAuthor[]>;
 
+  findByAuthorIdPaginated(authorId: string, page: number, limit: number): Promise<{ posts: PostWithAuthor[]; total: number }>;
+
   findById(id: string): Promise<Post | null>;  
   deleteById(id: string): Promise<void>;        
 

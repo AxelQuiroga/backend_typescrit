@@ -1,11 +1,14 @@
+import type { Post } from "../../../domain/entities/Post.js";
+import type { PostWithAuthor } from "../../../domain/entities/PostWithAuthor.js";
 import type { CreatePostRequest } from "../dtos/post/CreatePostRequest.js";
 import type { UpdatePostRequest } from "../dtos/post/UpdatePostRequest.js";
-import type { PostResponse } from "../dtos/post/PostResponse.js";
-import type { PostWithAuthorResponse } from "../dtos/post/PostWithAuthorResponse.js";
 import type { CreatePostInput } from "../../../application/contracts/post/CreatePostInput.js";
 import type { UpdatePostInput } from "../../../application/contracts/post/UpdatePostInput.js";
 import type { PostOutput } from "../../../application/contracts/post/PostOutput.js";
 import type { PostWithAuthorOutput } from "../../../application/contracts/post/PostWithAuthorOutput.js";
+import type { PostWithAuthorPublicOutput } from "../../../application/contracts/post/PostWithAuthorPublicOutput.js";
+import type { PostResponse } from "../dtos/post/PostResponse.js";
+import type { PostWithAuthorResponse } from "../dtos/post/PostWithAuthorResponse.js";
 
 export function toCreatePostInput(body: CreatePostRequest): CreatePostInput {
   return {
@@ -53,5 +56,22 @@ export function toPostWithAuthorResponse(
     },
     likesCount: output.likesCount,
     userHasLiked: output.userHasLiked
+  };
+}
+
+export function toPostWithAuthorPublicResponse(
+  output: PostWithAuthorPublicOutput
+): PostWithAuthorResponse {
+  return {
+    id: output.id,
+    title: output.title,
+    content: output.content,
+    createdAt: output.createdAt.toISOString(),
+    author: {
+      id: output.author.id,
+      username: output.author.username
+    },
+    likesCount: output.likesCount,
+    userHasLiked: false // Siempre false en endpoints públicos
   };
 }

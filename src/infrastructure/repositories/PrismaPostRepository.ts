@@ -44,6 +44,33 @@ export class PrismaPostRepository implements PostRepository {
     });
   }
 
+  async findByAuthorIdPaginated(authorId: string, page: number, limit: number) {
+    const skip = (page - 1) * limit;
+
+    const [posts, total] = await Promise.all([
+      this.prisma.post.findMany({
+        where: {
+          authorId: authorId
+        },
+        skip,
+        take: limit,
+        include: {
+          author: true
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      }),
+      this.prisma.post.count({
+        where: {
+          authorId: authorId
+        }
+      })
+    ]);
+
+    return { posts, total };
+  }
+
   async findById(id: string) {
     return await this.prisma.post.findUnique({
       where: {

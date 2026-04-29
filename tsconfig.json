@@ -11,6 +11,13 @@
     "moduleResolution": "nodenext",
     "target": "es2020",
     "types": ["node"],
+    "baseUrl": "./src",
+    "paths": {
+      "@domain/*": ["domain/*"],
+      "@application/*": ["application/*"],
+      "@infrastructure/*": ["infrastructure/*"],
+      "@interfaces/*": ["interfaces/*"]
+    },
     // For nodejs:
     // "lib": ["esnext"],
     // "types": ["node"],

@@ -73,4 +73,56 @@ export class PrismaLikeRepository implements LikeRepository {
       createdAt: like.createdAt
     }));
   }
+
+  async countByPostIdsBatch(postIds: string[]): Promise<Map<string, number>> {
+    if (postIds.length === 0) return new Map();
+
+    const likeCounts = await this.prisma.like.groupBy({
+      by: ['postId'],
+      where: {
+        postId: { in: postIds }
+      },
+      _count: {
+        id: true
+      }
+    });
+
+    const result = new Map<string, number>();
+    
+    // Inicializar todos los posts con 0
+    postIds.forEach(id => result.set(id, 0));
+    
+    // Asignar los conteos reales
+    likeCounts.forEach(({ postId, _count }) => {
+      result.set(postId, _count.id);
+    });
+
+    return result;
+  }
+
+  async existsBatch(userId: string, postIds: string[]): Promise<Map<string, boolean>> {
+    if (postIds.length === 0) return new Map();
+
+    const likes = await this.prisma.like.findMany({
+      where: {
+        userId,
+        postId: { in: postIds }
+      },
+      select: {
+        postId: true
+      }
+    });
+
+    const result = new Map<string, boolean>();
+    
+    // Inicializar todos los posts con false
+    postIds.forEach(id => result.set(id, false));
+    
+    // Marcar los posts que tienen like
+    likes.forEach(({ postId }) => {
+      result.set(postId, true);
+    });
+
+    return result;
+  }
 }

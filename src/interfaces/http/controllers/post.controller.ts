@@ -4,6 +4,9 @@ import { GetPostsUseCase } from "../../../application/use-cases/post/GetPostsUse
 import { GetMyPostsUseCase } from "../../../application/use-cases/post/GetMyPostsUseCase.js";
 import { DeletePostUseCase } from "../../../application/use-cases/post/DeletePostUseCase.js";
 import { UpdatePostUseCase } from "../../../application/use-cases/post/UpdatePostUseCase.js";
+import { GetPostsByUserUseCase } from "../../../application/use-cases/post/GetPostsByUserUseCase.js";
+import { GetUserPublicProfileUseCase } from "../../../application/use-cases/user/GetUserPublicProfileUseCase.js";
+import type { PostWithAuthorPublicOutput } from "../../../application/contracts/post/PostWithAuthorPublicOutput.js";
 import type { CreatePostRequest } from "../dtos/post/CreatePostRequest.js";
 import type { UpdatePostRequest } from "../dtos/post/UpdatePostRequest.js";
 import type { GetPostsResponse } from "../dtos/post/GetPostsResponse.js";
@@ -11,6 +14,7 @@ import {
   toCreatePostInput,
   toPostResponse,
   toPostWithAuthorResponse,
+  toPostWithAuthorPublicResponse,
   toUpdatePostInput
 } from "../mappers/post.mapper.js";
 
@@ -20,7 +24,9 @@ export class PostController {
     private getPostsUseCase: GetPostsUseCase,
     private getMyPostsUseCase: GetMyPostsUseCase,
     private deletePostUseCase: DeletePostUseCase,
-    private updatePostUseCase: UpdatePostUseCase
+    private updatePostUseCase: UpdatePostUseCase,
+    private getPostsByUserUseCase: GetPostsByUserUseCase,
+    private getUserPublicProfileUseCase: GetUserPublicProfileUseCase
   ) { }
 
   async handle(req: Request, res: Response)  {
@@ -129,6 +135,42 @@ export class PostController {
       const status = error.message === "Post no encontrado" ? 404 :
         error.message === "No autorizado" ? 403 : 500;
       return res.status(status).json({ error: error.message });
+    }
+  }
+
+  async getPostsByUser(req: Request, res: Response) {
+    try {
+      const { username } = res.locals.validated.params as { username: string };
+      const { page, limit } = res.locals.validated.query as { page: number; limit: number };
+      
+      // Usuario logueado (opcional)
+      const currentUserId = req.user?.userId;
+
+      // Obtener el usuario para validar que existe
+      const user = await this.getUserPublicProfileUseCase.execute(username);
+
+      // Obtener posts paginados del usuario (con auth opcional)
+      const { data: posts, total } = await this.getPostsByUserUseCase.execute(
+        user.id,
+        currentUserId,
+        page,
+        limit
+      );
+
+      return res.json({
+        data: posts.map(toPostWithAuthorResponse),
+        meta: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit)
+        }
+      });
+    } catch (error: any) {
+      const status = error.message === "Usuario no encontrado" ? 404 : 500;
+      return res.status(status).json({
+        error: error.message || "Error obteniendo posts del usuario"
+      });
     }
   }
 }
