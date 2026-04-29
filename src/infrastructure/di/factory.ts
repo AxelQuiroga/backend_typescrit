@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@infrastructure/database/prisma.js";
 
 // Domain Types
 import type { PostRepository } from "@domain/repositories/PostRepository.js";
@@ -28,16 +28,10 @@ import { GetUserPublicProfileUseCase } from "@application/use-cases/user/GetUser
 import { PostController } from "@interfaces/http/controllers/post.controller.js";
 
 // Events
-import { eventBus } from "@infrastructure/config/events.config.js";
+import { eventBus } from "@config/events.config.js";
 
-// Prisma Client (singleton)
-let prismaClient: PrismaClient | null = null;
-
-export function getPrismaClient(): PrismaClient {
-  if (!prismaClient) {
-    prismaClient = new PrismaClient();
-  }
-  return prismaClient;
+export function getPrismaClient() {
+  return prisma;
 }
 
 // Repositories Factory
@@ -109,8 +103,6 @@ export function createPostController(): PostController {
 
 // Clean shutdown
 export async function shutdownContainer(): Promise<void> {
-  if (prismaClient) {
-    await prismaClient.$disconnect();
-    prismaClient = null;
-  }
+  const client = getPrismaClient();
+  await client.$disconnect();
 }

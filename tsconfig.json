@@ -2,8 +2,8 @@
   // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
     // File Layout
-    // "rootDir": "./src",
-    // "outDir": "./dist",
+    "rootDir": "./src",
+    "outDir": "./dist",
 
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
@@ -11,12 +11,14 @@
     "moduleResolution": "nodenext",
     "target": "es2020",
     "types": ["node"],
+    "ignoreDeprecations": "6.0",
     "baseUrl": "./src",
     "paths": {
       "@domain/*": ["domain/*"],
       "@application/*": ["application/*"],
       "@infrastructure/*": ["infrastructure/*"],
-      "@interfaces/*": ["interfaces/*"]
+      "@interfaces/*": ["interfaces/*"],
+      "@config/*": ["config/*"]
     },
     // For nodejs:
     // "lib": ["esnext"],
@@ -24,8 +26,6 @@
     // and npm install -D @types/node
 
 
-    "rootDir": "./src",
-    "outDir": "./dist",
     // Other Outputs
     "sourceMap": true,
     "declaration": true,
