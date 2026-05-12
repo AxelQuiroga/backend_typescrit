@@ -8,39 +8,38 @@ export class RabbitMQEventBus implements EventBus {
   private connection?: Awaited<ReturnType<typeof amqp.connect>>;
   private channel?: amqp.Channel;
   private connected = false;
-  private pendingHandlers: Array<{ event: string; handler: Handler }> = [];
+  private handlers = new Map<string, Handler[]>();
+  private isSubscribed = false;
   private pendingMessages: Array<{ event: string; payload: unknown }> = [];
 
   async connect(): Promise<void> {
     try {
       this.connection = await amqp.connect(env.RABBITMQ_URL);
       this.channel = await this.connection.createChannel();
+      
+      // Aseguramos la cola compartida
       await this.channel.assertQueue("notifications", { durable: true });
       this.connected = true;
-      console.log("[RabbitMQ] Conectado y queue 'notifications' lista");
+      console.log("[RabbitMQ] Conectado y listo para despachar");
 
-      this.connection.on("error", (err: Error) => {
-        console.error("[RabbitMQ] Connection error:", err.message);
-        this.connected = false;
-      });
-
-      this.connection.on("close", () => {
-        console.warn("[RabbitMQ] Connection closed");
-        this.connected = false;
-      });
-
-      // Registrar handlers pendientes que llegaron antes de la conexión
-      for (const { event, handler } of this.pendingHandlers) {
-        this.registerConsumer(event, handler);
+      // Si ya se registraron handlers antes de conectar, arrancamos el worker
+      if (this.handlers.size > 0) {
+        this.startConsuming();
       }
-      this.pendingHandlers = [];
 
-      // Emitir mensajes pendientes
+      // Despachamos lo que quedó pendiente de enviar
       for (const { event, payload } of this.pendingMessages) {
         this.publish(event, payload);
       }
       this.pendingMessages = [];
-    } catch (err: unknown) {
+
+      this.connection.on("error", (err) => {
+        console.error("[RabbitMQ] Error de conexión:", err.message);
+        this.connected = false;
+        this.isSubscribed = false;
+      });
+
+    } catch (err) {
       console.error("[RabbitMQ] Error al conectar:", err);
       throw err;
     }
@@ -64,31 +63,38 @@ export class RabbitMQEventBus implements EventBus {
   }
 
   on(event: string, handler: Handler): void {
-    if (!this.channel || !this.connected) {
-      this.pendingHandlers.push({ event, handler });
-      return;
+    const eventHandlers = this.handlers.get(event) || [];
+    eventHandlers.push(handler);
+    this.handlers.set(event, eventHandlers);
+
+    if (this.connected && !this.isSubscribed) {
+      this.startConsuming();
     }
-    this.registerConsumer(event, handler);
   }
 
-  private registerConsumer(event: string, handler: Handler): void {
-    if (!this.channel) return;
+  private async startConsuming() {
+    if (this.isSubscribed || !this.channel) return;
+    this.isSubscribed = true;
 
-    this.channel.consume("notifications", (msg: amqp.ConsumeMessage | null) => {
+    console.log("[RabbitMQ] Worker de despacho iniciado");
+
+    await this.channel.consume("notifications", async (msg) => {
       if (!msg) return;
 
-      (async () => {
-        try {
-          const content = JSON.parse(msg.content.toString());
-          if (content.event === event) {
-            await handler(content.payload);
-          }
-          this.channel!.ack(msg);
-        } catch (err: unknown) {
-          console.error("[RabbitMQ] Error procesando mensaje:", err);
-          this.channel!.nack(msg, false, false); // descartar, no requeue
+      try {
+        const content = JSON.parse(msg.content.toString());
+        const targetHandlers = this.handlers.get(content.event);
+
+        if (targetHandlers && targetHandlers.length > 0) {
+          // Avisamos a todos los que estén escuchando este evento
+          await Promise.all(targetHandlers.map(h => h(content.payload)));
         }
-      })();
+
+        this.channel!.ack(msg);
+      } catch (err) {
+        console.error("[RabbitMQ] Error en dispatcher:", err);
+        this.channel!.nack(msg, false, false);
+      }
     });
   }
 
@@ -96,6 +102,7 @@ export class RabbitMQEventBus implements EventBus {
     await this.channel?.close();
     await this.connection?.close();
     this.connected = false;
+    this.isSubscribed = false;
     console.log("[RabbitMQ] Desconectado");
   }
 }

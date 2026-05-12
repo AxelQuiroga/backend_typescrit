@@ -4,10 +4,12 @@ import { UnlikePostUseCase } from "../../../application/use-cases/like/UnlikePos
 import { GetPostLikesCountUseCase } from "../../../application/use-cases/like/GetPostLikesCountUseCase.js";
 import type { LikePostRequest } from "../dtos/like/LikePostRequest.js";
 import type { UnlikePostRequest } from "../dtos/like/UnlikePostRequest.js";
+import type { LikeCountResponse } from "../dtos/like/LikeCountResponse.js";
 import {
   toLikePostInput,
   toUnlikePostInput,
-  toLikeResponse
+  toLikeResponse,
+  toLikeCountResponse
 } from "../mappers/like.mapper.js";
 
 export class LikeController {
@@ -86,11 +88,13 @@ export class LikeController {
 
       const result = await this.getPostLikesCountUseCase.execute(postId, userId);
 
-      return res.json({
+      const response = toLikeCountResponse({
         postId,
         likesCount: result.count,
         userHasLiked: result.userHasLiked
       });
+
+      return res.json(response);
     } catch (error: any) {
       return res.status(500).json({ error: error.message || "Error obteniendo likes" });
     }

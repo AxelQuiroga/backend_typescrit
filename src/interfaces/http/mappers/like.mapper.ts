@@ -1,6 +1,7 @@
 import type { LikePostRequest } from "../dtos/like/LikePostRequest.js";
 import type { UnlikePostRequest } from "../dtos/like/UnlikePostRequest.js";
 import type { LikeResponse } from "../dtos/like/LikeResponse.js";
+import type { LikeCountResponse } from "../dtos/like/LikeCountResponse.js";
 import type { LikePostInput } from "../../../application/contracts/like/LikePostInput.js";
 import type { UnlikePostInput } from "../../../application/contracts/like/UnlikePostInput.js";
 import type { LikeOutput } from "../../../application/contracts/like/LikeOutput.js";
@@ -59,5 +60,23 @@ export function toLikeResponse(output: LikeOutput): LikeResponse {
 export function toLikePostInputFromParams(params: { id: string }): LikePostInput {
   return {
     postId: params.id
+  };
+}
+
+/**
+ * Transforma el output del use case a response HTTP de conteo de likes.
+ *
+ * @param output - Datos del use case (LikeCountOutput)
+ * @returns Response HTTP listo para enviar (LikeCountResponse)
+ */
+export function toLikeCountResponse(output: {
+  postId: string;
+  likesCount: number;
+  userHasLiked: boolean;
+}): LikeCountResponse {
+  return {
+    postId: output.postId,
+    likesCount: output.likesCount,
+    userHasLiked: output.userHasLiked
   };
 }
