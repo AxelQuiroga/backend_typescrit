@@ -39,59 +39,26 @@ export class LikePostUseCase {
    * @throws {Error} "Ya has dado like a este post" - Si el like ya existe
    */
   async execute(userId: string, data: LikePostInput): Promise<LikeOutput> {
-    let post;
-    let retries = 0;
-    const maxRetries = 6;
-    
-    // Reintentar buscar el post si no se encuentra (race condition workaround)
-    while (retries < maxRetries) {
-      post = await this.postRepository.findById(data.postId);
-      if (post) break;
-      
-      retries++;
-      if (retries < maxRetries) {
-        // Esperar 300ms antes de reintentar
-        await new Promise(resolve => setTimeout(resolve, 300));
-      }
-    }
-    
+    // 1. Validar que el post exista (el repo Retryable ya maneja el retardo si es nuevo)
+    const post = await this.postRepository.findById(data.postId);
     if (!post) {
       throw new Error("Post no encontrado");
     }
 
+    // 2. Validar si ya existe el like
     const alreadyLiked = await this.likeRepository.exists(userId, data.postId);
     if (alreadyLiked) {
       throw new Error("Ya has dado like a este post");
     }
 
-    let like;
-    let likeRetries = 0;
-    const maxLikeRetries = 6;
-    
-    // Reintentar crear el like si falla por foreign key
-    while (likeRetries < maxLikeRetries) {
-      try {
-        like = await this.likeRepository.create(userId, data.postId);
-        break;
-      } catch (error) {
-        likeRetries++;
-        if (likeRetries >= maxLikeRetries) {
-          if (error instanceof Error && error.message.includes('Foreign key constraint')) {
-            throw new Error(`Usuario ${userId} o post ${data.postId} no encontrado`);
-          }
-          throw error;
-        }
-        
-        // Esperar 300ms antes de reintentar
-        await new Promise(resolve => setTimeout(resolve, 300));
-      }
-    }
+    // 3. Crear el like (el repo Retryable maneja los errores de FK transitorios)
+    const like = await this.likeRepository.create(userId, data.postId);
     
     if (!like) {
       throw new Error("Error al crear el like");
     }
 
-    // Emitir evento (no esperamos respuesta)
+    // 4. Emitir evento asíncrono
     this.eventBus.emit('like.created', {
       type: 'LIKE_CREATED',
       postId: data.postId,

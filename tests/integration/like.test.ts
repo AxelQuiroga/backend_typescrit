@@ -1,26 +1,37 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { LikePostUseCase } from '../../src/application/use-cases/like/LikePostUseCase';
-import { UnlikePostUseCase } from '../../src/application/use-cases/like/UnlikePostUseCase';
-import { PrismaLikeRepository } from '../../src/infrastructure/repositories/PrismaLikeRepository';
-import { PrismaPostRepository } from '../../src/infrastructure/repositories/PrismaPostRepository';
+import { LikePostUseCase } from '../../src/application/use-cases/like/LikePostUseCase.js';
+import { UnlikePostUseCase } from '../../src/application/use-cases/like/UnlikePostUseCase.js';
+import { LikeRepository } from '../../src/domain/repositories/LikeRepository.js';
+import { PostRepository } from '../../src/domain/repositories/PostRepository.js';
+import { PrismaLikeRepository } from '../../src/infrastructure/repositories/PrismaLikeRepository.js';
+import { PrismaPostRepository } from '../../src/infrastructure/repositories/PrismaPostRepository.js';
 import { PrismaNotificationRepository } from '../../src/infrastructure/repositories/PrismaNotificationRepository';
 import { PrismaCommentRepository } from '../../src/infrastructure/repositories/PrismaCommentRepository';
 import { NotificationListeners } from '../../src/infrastructure/events/NotificationListeners';
 import { InMemoryEventBus } from '../mocks/InMemoryEventBus';
-import { cleanupDb, prisma } from '../setup';
-import { createUser, createPost, createLike } from '../factories';
+import { RetryableLikeRepository } from '../../src/infrastructure/repositories/RetryableLikeRepository.js';
+import { RetryablePostRepository } from '../../src/infrastructure/repositories/RetryablePostRepository.js';
+import { cleanupDb, prisma } from '../setup.js';
+import { createUser, createPost, createLike } from '../factories.js';
 
 let eventBus: InMemoryEventBus;
-let likeRepo: PrismaLikeRepository;
-let postRepo: PrismaPostRepository;
+let likeRepo: LikeRepository;
+let postRepo: PostRepository;
 let commentRepo: PrismaCommentRepository;
 let notificationRepo: PrismaNotificationRepository;
 
 beforeEach(async () => {
   await cleanupDb();
   eventBus = new InMemoryEventBus();
-  likeRepo = new PrismaLikeRepository(prisma);
-  postRepo = new PrismaPostRepository(prisma);
+  
+  // Repositorios base
+  const prismaLikeRepo = new PrismaLikeRepository(prisma);
+  const prismaPostRepo = new PrismaPostRepository(prisma);
+  
+  // Envolvemos con decoradores de reintentos
+  likeRepo = new RetryableLikeRepository(prismaLikeRepo, prismaPostRepo);
+  postRepo = new RetryablePostRepository(prismaPostRepo);
+  
   commentRepo = new PrismaCommentRepository(prisma);
   notificationRepo = new PrismaNotificationRepository(prisma);
   new NotificationListeners(notificationRepo, commentRepo, eventBus);
