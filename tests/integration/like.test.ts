@@ -8,6 +8,7 @@ import { PrismaPostRepository } from '../../src/infrastructure/repositories/Pris
 import { PrismaNotificationRepository } from '../../src/infrastructure/repositories/PrismaNotificationRepository';
 import { PrismaCommentRepository } from '../../src/infrastructure/repositories/PrismaCommentRepository';
 import { NotificationListeners } from '../../src/infrastructure/events/NotificationListeners';
+import { NotificationService } from '../../src/application/services/NotificationService';
 import { InMemoryEventBus } from '../mocks/InMemoryEventBus';
 import { RetryableLikeRepository } from '../../src/infrastructure/repositories/RetryableLikeRepository.js';
 import { RetryablePostRepository } from '../../src/infrastructure/repositories/RetryablePostRepository.js';
@@ -34,7 +35,9 @@ beforeEach(async () => {
   
   commentRepo = new PrismaCommentRepository(prisma);
   notificationRepo = new PrismaNotificationRepository(prisma);
-  new NotificationListeners(notificationRepo, commentRepo, eventBus);
+  
+  const notificationService = new NotificationService(notificationRepo, commentRepo);
+  new NotificationListeners(notificationService, eventBus);
 });
 
 describe('LikePostUseCase Integration', () => {

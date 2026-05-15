@@ -23,6 +23,11 @@ import { UpdatePostUseCase } from "@application/use-cases/post/UpdatePostUseCase
 import { GetPostsByUserUseCase } from "@application/use-cases/post/GetPostsByUserUseCase.js";
 import { GetPostLikesCountUseCase } from "@application/use-cases/like/GetPostLikesCountUseCase.js";
 import { GetUserPublicProfileUseCase } from "@application/use-cases/user/GetUserPublicProfileUseCase.js";
+import { NotificationService } from "@application/services/NotificationService.js";
+
+// Services (Interfaces & Implementations)
+import type { AIService } from "@domain/services/AIService.js";
+import { GeminiAIService } from "@infrastructure/services/GeminiAIService.js";
 
 // Controllers
 import { PostController } from "@interfaces/http/controllers/post.controller.js";
@@ -86,6 +91,15 @@ export function createGetPostLikesCountUseCase(): GetPostLikesCountUseCase {
 
 export function createGetUserPublicProfileUseCase(): GetUserPublicProfileUseCase {
   return new GetUserPublicProfileUseCase(createUserRepository());
+}
+
+// Services Factory
+export function createAIService(): AIService {
+  return new GeminiAIService();
+}
+
+export function createNotificationService(): NotificationService {
+  return new NotificationService(createNotificationRepository(), createCommentRepository());
 }
 
 // Controllers Factory

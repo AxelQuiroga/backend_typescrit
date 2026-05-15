@@ -6,6 +6,7 @@ import { PrismaLikeRepository } from '../../src/infrastructure/repositories/Pris
 import { PrismaNotificationRepository } from '../../src/infrastructure/repositories/PrismaNotificationRepository';
 import { PrismaCommentRepository } from '../../src/infrastructure/repositories/PrismaCommentRepository';
 import { NotificationListeners } from '../../src/infrastructure/events/NotificationListeners';
+import { NotificationService } from '../../src/application/services/NotificationService';
 import { InMemoryEventBus } from '../mocks/InMemoryEventBus';
 import { cleanupDb, prisma } from '../setup';
 import { createUser, createPost } from '../factories';
@@ -23,7 +24,9 @@ beforeEach(async () => {
   likeRepo = new PrismaLikeRepository(prisma);
   commentRepo = new PrismaCommentRepository(prisma);
   notificationRepo = new PrismaNotificationRepository(prisma);
-  new NotificationListeners(notificationRepo, commentRepo, eventBus);
+  
+  const notificationService = new NotificationService(notificationRepo, commentRepo);
+  new NotificationListeners(notificationService, eventBus);
 });
 
 describe('DeletePostUseCase Integration', () => {

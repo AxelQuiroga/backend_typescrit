@@ -1,35 +1,24 @@
 import { RabbitMQEventBus } from "../infrastructure/events/RabbitMQEventBus.js";
 import { NotificationListeners } from "../infrastructure/events/NotificationListeners.js";
-import { PrismaNotificationRepository } from "../infrastructure/repositories/PrismaNotificationRepository.js";
-import { PrismaCommentRepository } from "../infrastructure/repositories/PrismaCommentRepository.js";
-import { prisma } from "../infrastructure/database/prisma.js";
+import { createNotificationService } from "../infrastructure/di/factory.js";
 
 /**
  * Configuración personalizada para reconexión automática.
- * 
- * @remarks
- * Estos valores están optimizados para producción:
- * - Hasta 10 intentos de reconexión
- * - Espera exponencial desde 1s hasta 30s máximo
- * - Jitter del 10% para prevenir thundering herd
  */
 const retryConfig = {
   maxRetries: 10,
-  initialDelay: 1000, // 1 segundo
-  maxDelay: 30000, // 30 segundos máximo
+  initialDelay: 1000,
+  maxDelay: 30000,
   backoffMultiplier: 2,
-  jitterFactor: 0.1 // ±10% de variación aleatoria
+  jitterFactor: 0.1
 };
 
-// 1. Crear EventBus con configuración de reconexión robusta
+// 1. Crear EventBus
 export const eventBus = new RabbitMQEventBus(retryConfig);
 
-// 2. Crear repositorios
-const notificationRepo = new PrismaNotificationRepository(prisma);
-const commentRepo = new PrismaCommentRepository(prisma);
-
-// 3. Registrar listeners (se ejecuta sync, pero consume empieza luego de connect)
-const notificationListeners = new NotificationListeners(notificationRepo, commentRepo, eventBus);
+// 2. Crear servicios y listeners vía Factory
+const notificationService = createNotificationService();
+const notificationListeners = new NotificationListeners(notificationService, eventBus);
 
 // 4. Conectar a RabbitMQ (llamar antes de app.listen)
 export async function connectEventBus(): Promise<void> {
